@@ -1,5 +1,5 @@
 import { response } from "express";
-import { generateReponse, generateChatTittle } from "../services/ai.service.js"
+import { generateResponse, generateChatTittle } from "../services/ai.service.js"
 import chatModel from "../models/chat.model.js"
 import messageModel from "../models/message.model.js"
 import { ChatMistralAI } from "@langchain/mistralai";
@@ -31,7 +31,7 @@ export async function sendMessage(req, res){
 
 const messages = await messageModel.find({chat: chatId})
 
-const result = await generateReponse(message);
+const result = await generateResponse(messages);
 
     
       const aiMessage = await messageModel.create({
