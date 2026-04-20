@@ -5,9 +5,15 @@ import messageModel from "../models/message.model.js"
 import { ChatMistralAI } from "@langchain/mistralai";
 
 export async function sendMessage(req, res){
+    try {
+        const { message , chat: chatId} = req.body 
 
-    const { message , chat: chatId} = req.body 
-
+        // Validate message
+        if (!message || message.trim() === '') {
+            return res.status(400).json({
+                message: "Message content cannot be empty"
+            })
+        }
 
        let title = null, chat = null;
 
@@ -25,15 +31,21 @@ export async function sendMessage(req, res){
 
     const userMessage = await messageModel.create({
         chat: chatId || chat._id,
-        content: message,
-        role: "user"
+        content:message,
+        role:"user"
     })
 
-const messages = await messageModel.find({chat: chatId})
+const messages = await messageModel.find({chat: chatId || chat._id})
 
 const result = await generateResponse(messages);
 
     
+      if (!result || result.trim() === '') {
+        return res.status(500).json({
+            message: "Failed to generate AI response"
+        })
+      }
+
       const aiMessage = await messageModel.create({
        chat : chatId || chat._id,
        content: result,
@@ -46,6 +58,12 @@ const result = await generateResponse(messages);
         chat,
         aiMessage
     })
+    } catch (error) {
+        console.error("Error in sendMessage:", error)
+        res.status(500).json({
+            message: error.message || "Internal server error"
+        })
+    }
 
 }
 
@@ -74,13 +92,13 @@ export async function getMessages(req, res){
         })
       }
 
-      const message = await messageModel.find({
+      const messages = await messageModel.find({
         chat: chatId
       })
 
       res.status(200).json({
         message: "Message retrived succesfully",
-        message
+        messages
       })
 }
 

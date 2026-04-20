@@ -18,13 +18,24 @@ export async function generateResponse(messages) {
 
     console.log(messages)
     
-    const response = await geminiModel.invoke(messages.map(msg => {
+    const formattedMessages = messages.map(msg => {
         if (msg.role == "user") {
             return new HumanMessage(msg.content)
         } else if (msg.role == "ai") {
             return new AIMessage(msg.content)
         }
-    }));
+        return null;
+    }).filter(msg => msg !== null);
+    
+    if (formattedMessages.length === 0) {
+        throw new Error("No valid messages to process")
+    }
+
+    const response = await geminiModel.invoke(formattedMessages);
+
+    if (!response || !response.text) {
+        throw new Error("Invalid response from AI model")
+    }
 
     return response.text;
 
