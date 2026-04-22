@@ -9,9 +9,11 @@ export const useChat = ()=>{
     const dispatch = useDispatch()
 
     async function handleSendMessage({message,chatId}){
+        
         dispatch(setLoading(true))
         const data = await sendMessage({message, chatId})
         const {chat, aiMessage} = data 
+
         dispatch(createNewChat({
             chatId: chat._id,
             title: chat.title,
@@ -45,9 +47,13 @@ export const useChat = ()=>{
         dispatch(setLoading(false))
     }
 
-    async function handleOpenChat(chatId){
+    async function handleOpenChat(chatId,chats){
 
-         const data = await getMessages(chatId)
+
+        console.log(chats [chatId]?.messages.length)
+
+        if(chats[chatId]?.messages.length === 0){
+           const data = await getMessages(chatId)
          const {messages} = data 
 
          const formattedMessages = messages.map(msg => ({
@@ -59,6 +65,8 @@ export const useChat = ()=>{
             chatId,
             messages: formattedMessages,
          }))
+        }
+
          dispatch(setCurrentChatId(chatId))
     }
 
