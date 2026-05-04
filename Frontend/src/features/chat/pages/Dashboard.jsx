@@ -27,7 +27,6 @@ const Dashboard = () => {
     if (!trimmedMessage) {
       return
     }
-    console.log(setChatInput(event.target.value));
 
     chat.handleSendMessage({ message: trimmedMessage, chatId: currentChatId })
     setChatInput('')
@@ -37,7 +36,6 @@ const Dashboard = () => {
     chat.handleOpenChat(chatId,chats)
   }
 
-  console.log(chats[currentChatId])
 
   return (
     <main className='min-h-screen w-full bg-black p-3 text-white md:p-5'>

@@ -14,17 +14,21 @@ export const useChat = ()=>{
         const data = await sendMessage({message, chatId})
         const {chat, aiMessage} = data 
 
-        dispatch(createNewChat({
-            chatId: chat._id,
-            title: chat.title,
-        }))
-        dispatch(addNewMessage({
-            chatId: chat._id,
+       if (!chatId)
+            dispatch(createNewChat({
+                chatId: chat._id,
+                title: chat.title,
+            }))
+
+       
+            dispatch(addNewMessage({
+            chatId: chat._id || chatId,
             content: message,
             role: "user",
         }))
+
         dispatch(addNewMessage({
-            chatId: chat._id,
+            chatId: chat._id || chatId,
             content: aiMessage.content,
             role: aiMessage.role,
         }))
