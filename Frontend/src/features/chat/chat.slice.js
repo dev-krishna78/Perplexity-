@@ -1,6 +1,4 @@
 import {createSlice} from "@reduxjs/toolkit"
-
-
 const chatSlice = createSlice({
       name:'chat',
       initialState:{
@@ -19,12 +17,44 @@ const chatSlice = createSlice({
                 lastUpdated: new Date().toDateString(),
             }
         },
-        addNewMessage: (state, action) =>{
-            const {chatId , content , role} = action.payload
-            state.chats[chatId].messages.push({content,role})
-        },
-        addMessages: (state, action) =>{
-              const {chatId, messages} = action.payload
+        addNewMessage: (state, action) => {
+      const { chatId, id, content, role, loading } = action.payload;
+
+      // 🔥 Safety: if chat does not exist, create it
+      if (!state.chats[chatId]) {
+        state.chats[chatId] = {
+          id: chatId,
+          title: "New Chat",
+          messages: [],
+          lastUpdated: new Date().toISOString(),
+        };
+      }
+
+      state.chats[chatId].messages.push({
+        id: id || Date.now().toString(),
+        content,
+        role,
+        loading: loading || false,
+      });
+
+      state.chats[chatId].lastUpdated = new Date().toISOString();
+    },
+       
+      updateMessage: (state, action) => {
+      const { chatId, messageId, content, loading } = action.payload;
+
+      const chat = state.chats[chatId];
+      if (!chat) return;
+
+      const msg = chat.messages.find((m) => m.id === messageId);
+      if (!msg) return;
+
+      if (content !== undefined) msg.content = content;
+      if (loading !== undefined) msg.loading = loading;
+    },
+      addMessages: (state, action) =>{
+              const {chatId, messages} = action.payload;
+              if(!state.chats[chatId]) return;
               state.chats[chatId].messages.push(...messages)
         },
         setChats: (state, action) =>{
@@ -41,9 +71,7 @@ const chatSlice = createSlice({
         },
       }
 })
-
-export const {setChats,setCurrentChatId,setLoading,setError, createNewChat, addNewMessage, addMessages} = chatSlice.actions
-
+export const {setChats,setCurrentChatId,setLoading,setError, createNewChat, addNewMessage, addMessages, updateMessage} = chatSlice.actions
 export default chatSlice.reducer
 
 // chats = {

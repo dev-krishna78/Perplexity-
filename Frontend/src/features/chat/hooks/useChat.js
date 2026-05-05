@@ -1,39 +1,67 @@
 import { initialisedSocketConnection } from "../services/chat.socket";
 import {getChats, getMessages, sendMessage} from  "../services/chat.api";
 import {useDispatch} from "react-redux"
-import { addNewMessage, createNewChat, setChats, setCurrentChatId, setLoading, addMessages } from "../chat.slice";
+import { addNewMessage, createNewChat, setChats, setCurrentChatId, setLoading, addMessages,updateMessage } from "../chat.slice";
 
 
 export const useChat = ()=>{
        
     const dispatch = useDispatch()
 
-    async function handleSendMessage({message,chatId}){
-        
-        dispatch(setLoading(true))
-        const data = await sendMessage({message, chatId})
-        const {chat, aiMessage} = data 
+async function handleSendMessage({ message, chatId }) {
+  // Always ensure we have a chatId (temporary until backend confirms)
+  const provisionalChatId = chatId || "temp-chat";
+  const tempAiId = `ai-${Date.now()}`;
 
-       if (!chatId)
-            dispatch(createNewChat({
-                chatId: chat._id,
-                title: chat.title,
-            }))
+  try {
+    // 1️⃣ Show user message immediately
+    dispatch(addNewMessage({
+      chatId: provisionalChatId,
+      role: "user",
+      content: message,
+    }));
 
-       
-            dispatch(addNewMessage({
-            chatId: chat._id || chatId,
-            content: message,
-            role: "user",
-        }))
+    // 2️⃣ Show AI loader immediately
+    dispatch(addNewMessage({
+      chatId: provisionalChatId,
+      id: tempAiId,
+      role: "assistant",
+      content: "",
+      loading: true,
+    }));
 
-        dispatch(addNewMessage({
-            chatId: chat._id || chatId,
-            content: aiMessage.content,
-            role: aiMessage.role,
-        }))
-        dispatch(setCurrentChatId(chat._id))
+    // 3️⃣ Call backend
+    const { chat, aiMessage } = await sendMessage({ message, chatId });
+
+    // 4️⃣ If new chat, register it
+    const realChatId = chatId || chat._id;
+    if (!chatId) {
+      dispatch(createNewChat({
+        chatId: chat._id,
+        title: chat.title,
+      }));
+      dispatch(setCurrentChatId(chat._id));
     }
+
+    // 5️⃣ Replace loader with AI response
+    dispatch(updateMessage({
+      chatId: realChatId,
+      messageId: tempAiId,
+      content: aiMessage.content,
+      loading: false,
+    }));
+
+  } catch (error) {
+    // 6️⃣ Graceful error handling
+    dispatch(updateMessage({
+      chatId: provisionalChatId,
+      messageId: tempAiId,
+      content: "❌ Sorry, something went wrong. Please try again.",
+      loading: false,
+    }));
+    console.error("Message send failed:", error);
+  }
+}
 
     async function handleGetChats(){
         dispatch(setLoading(true))

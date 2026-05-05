@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { useSelector } from 'react-redux'
-import { Send, File, Trash2, Sparkles, Lightbulb, FileText, Zap } from 'lucide-react'
+import { Send, File, Trash2, Sparkles, Lightbulb, FileText, Zap, LogOut } from 'lucide-react'
 import { useChat } from '../hooks/useChat'
 
 
@@ -27,7 +27,6 @@ const Dashboard = () => {
     if (!trimmedMessage) {
       return
     }
-
     chat.handleSendMessage({ message: trimmedMessage, chatId: currentChatId })
     setChatInput('')
   }
@@ -68,15 +67,25 @@ const Dashboard = () => {
             ))}
           </div>
 
-          {/* Delete Button */}
-          <button className='w-full mt-4 rounded-lg p-3 font-medium transition-all duration-200
-            bg-white/5 hover:bg-red-500/10
-            border border-white/10 hover:border-red-500/20
-            text-gray-200 hover:text-red-300
-            flex items-center justify-center gap-2'>
-            <Trash2 size={18} />
-            <span>Delete Chat</span>
-          </button>
+          {/* Delete & Logout Buttons */}
+          <div className='flex gap-2 mt-4'>
+            <button className='flex-1 rounded-lg p-2 font-medium transition-all duration-200
+              bg-white/5 hover:bg-red-500/10
+              border border-white/10 hover:border-red-500/20
+              text-gray-200 hover:text-red-300
+              flex items-center justify-center gap-1.5'>
+              <Trash2 size={16} />
+              <span className='text-xs'>Delete</span>
+            </button>
+            <button className='flex-1 rounded-lg p-2 font-medium transition-all duration-200
+              bg-white/5 hover:bg-blue-500/10
+              border border-white/10 hover:border-blue-500/20
+              text-gray-200 hover:text-blue-300
+              flex items-center justify-center gap-1.5'>
+              <LogOut size={16} />
+              <span className='text-xs'>Logout</span>
+            </button>
+          </div>
         </aside>
 
         {/* Main Chat Section */}
@@ -191,42 +200,54 @@ const Dashboard = () => {
             ) : (
 
               // Messages Display
-              chats[currentChatId]?.messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[82%] w-fit rounded-xl px-4 py-3 text-sm md:text-base transition-all duration-200
-                      ${message.role === 'user'
-                        ? 'rounded-br-none bg-white/10 text-white border border-white/20'
-                        : 'rounded-bl-none bg-white/5 text-gray-200 border border-white/10'
-                      }`}
-                  >
-                    {message.role === 'user' ? (
-                      <p className='font-medium'>{message.content}</p>
-                    ) : (
-                      <ReactMarkdown
-                        components={{
-                          p: ({ children }) => <p className='mb-2 last:mb-0 leading-relaxed text-gray-200'>{children}</p>,
-                          ul: ({ children }) => <ul className='mb-2 list-disc pl-5 space-y-1 text-gray-200'>{children}</ul>,
-                          ol: ({ children }) => <ol className='mb-2 list-decimal pl-5 space-y-1 text-gray-200'>{children}</ol>,
-                          li: ({ children }) => <li className='text-gray-200'>{children}</li>,
-                          code: ({ children }) => <code className='rounded bg-black/60 px-2 py-1 text-gray-300 font-mono text-xs border border-white/10'>{children}</code>,
-                          pre: ({ children }) => <pre className='mb-2 overflow-x-auto rounded-lg bg-black/40 p-3 border border-white/10 text-gray-300'>{children}</pre>,
-                          a: ({ children, href }) => <a href={href} className='text-gray-300 hover:text-white underline transition-colors'>{children}</a>,
-                          blockquote: ({ children }) => <blockquote className='mb-2 border-l-4 border-white/20 pl-3 py-2 text-gray-400 italic'>{children}</blockquote>,
-                          h1: ({ children }) => <h1 className='mb-2 text-base font-bold text-white'>{children}</h1>,
-                          h2: ({ children }) => <h2 className='mb-2 text-sm font-bold text-white'>{children}</h2>,
-                          h3: ({ children }) => <h3 className='mb-2 text-sm font-bold text-white'>{children}</h3>,
-                        }}
-                      >
-                        {message.content}
-                      </ReactMarkdown>
-                    )}
-                  </div>
-                </div>
-              ))
+             chats[currentChatId]?.messages.map((message) => (
+  <div
+    key={message.id}
+    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+  >
+    <div
+      className={`max-w-[82%] w-fit rounded-xl px-4 py-3 text-sm md:text-base transition-all duration-200
+        ${message.role === 'user'
+          ? 'rounded-br-none bg-white/10 text-white border border-white/20'
+          : 'rounded-bl-none bg-white/5 text-gray-200 border border-white/10'
+        }`}
+    >
+      {message.role === 'user' ? (
+        <p className='font-medium'>{message.content}</p>
+      ) : (
+        message.loading ? (
+          // 3 dots animation while loading
+          <span className="flex space-x-1">
+            <span className="animate-bounce">.</span>
+            <span className="animate-bounce delay-150">.</span>
+            <span className="animate-bounce delay-300">.</span>
+          </span>
+        ) : (
+          <ReactMarkdown
+            components={{
+              p: ({ children }) => <p className='mb-2 last:mb-0 leading-relaxed text-gray-200'>{children}</p>,
+              ul: ({ children }) => <ul className='mb-2 list-disc pl-5 space-y-1 text-gray-200'>{children}</ul>,
+              ol: ({ children }) => <ol className='mb-2 list-decimal pl-5 space-y-1 text-gray-200'>{children}</ol>,
+              li: ({ children }) => <li className='text-gray-200'>{children}</li>,
+              code: ({ children }) => <code className='rounded bg-black/60 px-2 py-1 text-gray-300 font-mono text-xs border border-white/10'>{children}</code>,
+              pre: ({ children }) => <pre className='mb-2 overflow-x-auto rounded-lg bg-black/40 p-3 border border-white/10 text-gray-300'>{children}</pre>,
+              a: ({ children, href }) => <a href={href} className='text-gray-300 hover:text-white underline transition-colors'>{children}</a>,
+              blockquote: ({ children }) => <blockquote className='mb-2 border-l-4 border-white/20 pl-3 py-2 text-gray-400 italic'>{children}</blockquote>,
+              h1: ({ children }) => <h1 className='mb-2 text-base font-bold text-white'>{children}</h1>,
+              h2: ({ children }) => <h2 className='mb-2 text-sm font-bold text-white'>{children}</h2>,
+              h3: ({ children }) => <h3 className='mb-2 text-sm font-bold text-white'>{children}</h3>,
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
+        )
+      )}
+    </div>
+  </div>
+))
+
+
+
             )}
           </div>
 
